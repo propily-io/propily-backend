@@ -19,3 +19,17 @@
 
 # Go workspace file
 go.work
+
+# Intellij project files
+.idea/
+
+# Cache directory
+.DS_Store
+
+# AWS SAM directories
+/.aws-sam/
+
+# Environment variables
+.env
+.env-dev.json
+.env-prod.json

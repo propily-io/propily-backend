@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  propily-backend
+
+  Sample SAM Template for propily-backend
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 5
+    MemorySize: 128
+
+    Tracing: Active
+    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
+    LoggingConfig:
+      LogFormat: JSON
+  Api:
+    TracingEnabled: true
+
+Resources:
+  PropilyApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: dev
+      DefinitionBody:
+        openapi: 3.0.1 # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md
+        info:
+          title: Propily Rest Api - DEV
+          version: 1.0.0
+          description: This is a sample serverless API for propily backend
+        paths:
+          /hello:
+            get:
+              responses:
+                '200':
+                  description: Success response
+              x-amazon-apigateway-integration:
+                payloadFormatVersion: "2.0"
+                type: aws_proxy
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HelloWorldFunction.Arn}/invocations
+
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Architectures:
+        - x86_64
+      Events:
+        HelloWorld:
+          Type: HttpApi # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            ApiId: !Ref PropilyApi
+            Path: /hello
+            Method: GET
+      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+        Variables:
+          DEFAULT_NAME: 'Default Name'
+          LOG_LEVEL: 'DEBUG'
+    Metadata:
+      DockerTag: latest
+      DockerContext: ./hello-world
+      Dockerfile: Dockerfile
